@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 public class Board {
 //TODO: Список фигур и начальное положение всех фигур
-    private Figure  fields[][] = new Figure[8][8];
+    private Figure[][] fields = new Figure[8][8];
     private ArrayList<String> takeWhite = new ArrayList(16);
     private ArrayList<String> takeBlack = new ArrayList(16);
 
@@ -18,7 +18,7 @@ public class Board {
         return colorGaming;
     }
 
-    public void setColorGaming(char colorGaming) {
+    public void setColorGaming( char colorGaming ) {
         this.colorGaming = colorGaming;
     }
 
@@ -52,13 +52,17 @@ public class Board {
         };
     }
 
-    public String getCell(int row, int col){
+    public String getCell( int row, int col ){
         Figure figure = this.fields[row][col];
         if (figure == null){
             return "    ";
         }
         return " "+figure.getColor()+figure.getName()+" ";
-    }
+    } // используется для отрисовки
+
+    public Figure getCell_f( int row, int col ){
+        return this.fields[row][col];
+    } // для просмотра объекта в клетке
 
     public ArrayList<String> getTakeWhite() {
         return takeWhite;
@@ -68,16 +72,18 @@ public class Board {
         return takeBlack;
     }
 
-    public boolean move_figure(int row1, int col1, int row2, int col2 ){
+    public boolean move_figure( int row1, int col1, int row2, int col2 ){
 
         Figure figure =  this.fields[row1][col1];
 
-        if (figure.canMove(row1, col1, row2, col2) && this.fields[row2][col2]==null){
+        if (figure.canMove(row1, col1, row2, col2, fields) && this.fields[row2][col2]==null){
             System.out.println("move");
             this.fields[row2][col2] = figure;
             this.fields[row1][col1] = null;
             return true;
-        } else if (figure.canAttack(row1, col1, row2, col2) && this.fields[row2][col2] != null && this.fields[row2][col2].getColor() != this.fields[row1][col1].getColor() ){
+        } else if (figure.canAttack(row1, col1, row2, col2, fields) && this.fields[row2][col2] != null &&
+                this.fields[row2][col2].getColor() != this.fields[row1][col1].getColor() &&
+                !this.fields[row2][col2].getName().equals("K") ){
             System.out.println("attack");
            switch (this.fields[row2][col2].getColor()){
             case 'w': this.takeWhite.add(this.fields[row2][col2].getColor()+this.fields[row2][col2].getName());break;
