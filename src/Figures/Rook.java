@@ -3,6 +3,7 @@ package Figures;
 import java.util.Objects;
 
 public class Rook extends Figure{
+    public boolean isFirstStep = true;
     public Rook(String name, char color) {
         super(name, color);
     }
@@ -31,19 +32,7 @@ public class Rook extends Figure{
 
     @Override
     public boolean canAttack(int row, int col, int row1, int col1, Figure[][] fields) {
-        if ( !super.canAttack(row, col, row1, col1, fields) ) { return false; }
-
         if ( !checkDirectionBlocks(row, col, row1, col1, fields) ) { return false; }
-
-        switch (this.getColor()) {
-            case 'w':
-                if ( Objects.equals(fields[row1][col1].getColor(), "w") ) { return false; }
-                break;
-            case 'b':
-                if ( Objects.equals(fields[row1][col1].getColor(), "b") ) { return false; }
-                break;
-        }
-
         return true;
     }
 }
