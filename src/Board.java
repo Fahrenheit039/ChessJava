@@ -331,8 +331,70 @@ public class Board {
         return false;
     } //false = ne Shah
 
-    private void castling( int row1, int col1, int row2, int col2, Figure[][] fields, char color ){
-
+    private boolean castling( int row1, int col1, int row2, int col2, Figure[][] fields ){
+        Figure figure = fields[row1][col1];
+        if( figure.getName().equals("K") && ((King)fields[row2][col2]).isFirstStep && Math.abs(col1-col2) == 2 )
+            if ( col1 < col2 ) {
+                if ( !fields[row1][col1+3].getName().equals("R") || !((Rook)fields[row1][col1 + 3]).isFirstStep || fields[row1][col1+1] != null ) {
+                    System.out.println("path is not empty");
+                    fields[row1][col1] = figure;
+                    fields[row2][col2] = null;
+                    return false;
+                }
+                fields[row1][col1+1] = figure;
+                fields[row1][col1+2] = null;
+                switch(colorGaming){
+                    case 'w':
+                        if ( shahFlagWhite || shahCheck(fields, colorGaming) ){
+                            System.out.println("path under Shah");
+                            fields[row1][col1] = figure;
+                            fields[row1][col1+1] = null;
+                            return false;
+                        } break;
+                    case 'b':
+                        if ( shahFlagBlack || shahCheck(fields, colorGaming) ){
+                            System.out.println("path under Shah");
+                            fields[row1][col1] = figure;
+                            fields[row1][col1+1] = null;
+                            return false;
+                        } break;
+                }
+                fields[row1][col1+2] = figure;
+                fields[row1][col1+1] = fields[row1][col1+3];
+                fields[row1][col1+3] = null;
+                ((King)fields[row1][col1+2]).isFirstStep = false;
+            } else {
+                if ( !fields[row1][col1-4].getName().equals("R") || !((Rook)fields[row1][col1-4]).isFirstStep ||
+                        fields[row1][col1-1] != null || fields[row1][col1-3] != null ) {
+                    System.out.println("path is not empty");
+                    fields[row1][col1] = figure;
+                    fields[row2][col2] = null;
+                    return false;
+                }
+                fields[row1][col1-1] = figure;
+                fields[row1][col1-2] = null;
+                switch(colorGaming){
+                    case 'w':
+                        if ( shahFlagWhite || shahCheck(fields, colorGaming) ){
+                            System.out.println("path under Shah");
+                            fields[row1][col1] = figure;
+                            fields[row1][col1-1] = null;
+                            return false;
+                        } break;
+                    case 'b':
+                        if ( shahFlagBlack || shahCheck(fields, colorGaming) ){
+                            System.out.println("path under Shah");
+                            fields[row1][col1] = figure;
+                            fields[row1][col1-1] = null;
+                            return false;
+                        } break;
+                }
+                fields[row1][col1-2] = figure;
+                fields[row1][col1-1] = fields[row1][col1-4];
+                fields[row1][col1-4] = null;
+                ((King)fields[row1][col1-2]).isFirstStep = false;
+            }
+        return true;
     }
 
     public boolean move_figure( int row1, int col1, int row2, int col2 ){
@@ -357,68 +419,7 @@ public class Board {
                 return false;
             }
 
-            if( figure.getName().equals("K") && ((King)fields[row2][col2]).isFirstStep && Math.abs(col1-col2) == 2 )
-                if ( col1 < col2 ) {
-                    if ( !fields[row1][col1+3].getName().equals("R") || !((Rook)fields[row1][col1 + 3]).isFirstStep || fields[row1][col1+1] != null ) {
-                        System.out.println("path is not empty");
-                        fields[row1][col1] = figure;
-                        fields[row2][col2] = null;
-                        return false;
-                    }
-                    fields[row1][col1+1] = figure;
-                    fields[row1][col1+2] = null;
-                    switch(colorGaming){
-                        case 'w':
-                            if ( shahFlagWhite || shahCheck(fields, colorGaming) ){
-                                System.out.println("path under Shah");
-                                fields[row1][col1] = figure;
-                                fields[row1][col1+1] = null;
-                                return false;
-                            } break;
-                        case 'b':
-                            if ( shahFlagBlack || shahCheck(fields, colorGaming) ){
-                                System.out.println("path under Shah");
-                                fields[row1][col1] = figure;
-                                fields[row1][col1+1] = null;
-                                return false;
-                            } break;
-                    }
-                    fields[row1][col1+2] = figure;
-                    fields[row1][col1+1] = fields[row1][col1+3];
-                    fields[row1][col1+3] = null;
-                    ((King)fields[row1][col1+2]).isFirstStep = false;
-                } else {
-                    if ( !fields[row1][col1-4].getName().equals("R") || !((Rook)fields[row1][col1-4]).isFirstStep ||
-                            fields[row1][col1-1] != null || fields[row1][col1-3] != null ) {
-                        System.out.println("path is not empty");
-                        fields[row1][col1] = figure;
-                        fields[row2][col2] = null;
-                        return false;
-                    }
-                    fields[row1][col1-1] = figure;
-                    fields[row1][col1-2] = null;
-                    switch(colorGaming){
-                        case 'w':
-                            if ( shahFlagWhite || shahCheck(fields, colorGaming) ){
-                                System.out.println("path under Shah");
-                                fields[row1][col1] = figure;
-                                fields[row1][col1-1] = null;
-                                return false;
-                            } break;
-                        case 'b':
-                            if ( shahFlagBlack || shahCheck(fields, colorGaming) ){
-                                System.out.println("path under Shah");
-                                fields[row1][col1] = figure;
-                                fields[row1][col1-1] = null;
-                                return false;
-                            } break;
-                    }
-                    fields[row1][col1-2] = figure;
-                    fields[row1][col1-1] = fields[row1][col1-4];
-                    fields[row1][col1-4] = null;
-                    ((King)fields[row1][col1-2]).isFirstStep = false;
-                }
-
+            if ( !castling(row1, col1, row2, col2, fields) ) return false;
             pawnCheck(row1, col1, row2, col2);
 
             return true;
