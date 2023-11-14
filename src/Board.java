@@ -82,7 +82,19 @@ public class Board {
     }
     private boolean shahFlagWhite = false;
     private boolean shahFlagBlack = false;
-    private boolean shahCheck( Figure[][] fields, char color ) {
+    public class ShahCoords {
+        int row;
+        int col;
+        Figure figure;
+        ShahCoords(int row, int col, Figure figure){
+            this.row = row;
+            this.col = col;
+            this.figure = figure;
+        }
+    }
+    private ShahCoords whiteSC, blackSC;
+    private boolean shahCheck( Figure[][] fields, char color, int level ) {
+        int c = 0; // shah counter
 //        #1 search the right King
         int i=0,j=0,flag=0;
         for ( ; i<8; i++){
@@ -92,25 +104,27 @@ public class Board {
             if (flag == 1) break;
         }
 
-        // TODO: 11.11.2023 таблица с проставленными X в клетках, куда нельзя ходить королю. интересуют в радиусе 1
-        // TODO: 11.11.2023 upd: шах есть шах. соседние X сделаем в мате
 //        #2 shah check for current King
 //        # Pawn
         switch (color){
             case 'w':
                 if (i<=6){
-                    if ( (j>=1 && j<=6) && ( ((fields[i+1][j-1] instanceof Pawn) && fields[i+1][j-1].getColor() != color) ||
-                            ((fields[i+1][j+1] instanceof Pawn) && fields[i+1][j+1].getColor() != color) ) ) { return true; }
-                    if ( j==0 && ((fields[i+1][j+1] instanceof Pawn) && fields[i+1][j+1].getColor() != color) ) { return true; }
-                    if ( j==7 && ((fields[i+1][j-1] instanceof Pawn) && fields[i+1][j-1].getColor() != color) ) { return true; }
+                    if ( (j>=1 && j<=6) ){
+                        if ((fields[i+1][j-1] instanceof Pawn) && fields[i+1][j-1].getColor() != color) {whiteSC = new ShahCoords(i+1, j-1, fields[i+1][j-1]); c++; if (c==2) return true;}
+                        if ((fields[i+1][j+1] instanceof Pawn) && fields[i+1][j+1].getColor() != color) {whiteSC = new ShahCoords(i+1, j+1, fields[i+1][j+1]); c++; if (c==2) return true;}
+                    }
+                    if ( j==0 && ((fields[i+1][j+1] instanceof Pawn) && fields[i+1][j+1].getColor() != color) ) {whiteSC = new ShahCoords(i+1, j+1, fields[i+1][j+1]); c++; if (c==2) return true;}
+                    if ( j==7 && ((fields[i+1][j-1] instanceof Pawn) && fields[i+1][j-1].getColor() != color) ) {whiteSC = new ShahCoords(i+1, j-1, fields[i+1][j-1]); c++; if (c==2) return true;}
                 }
                 break;
             case 'b':
                 if (i>=1){
-                    if ( (j>=1 && j<=6) && ( ((fields[i-1][j-1] instanceof Pawn) && fields[i-1][j-1].getColor() != color) ||
-                            ((fields[i-1][j+1] instanceof Pawn) && fields[i-1][j+1].getColor() != color) ) ) { return true; }
-                    if ( j==0 && ((fields[i-1][j+1] instanceof Pawn) && fields[i-1][j+1].getColor() != color) ) { return true; }
-                    if ( j==7 && ((fields[i-1][j-1] instanceof Pawn) && fields[i-1][j-1].getColor() != color) ) { return true; }
+                    if ( (j>=1 && j<=6) ){
+                        if ((fields[i-1][j-1] instanceof Pawn) && fields[i-1][j-1].getColor() != color) {blackSC = new ShahCoords(i-1, j-1, fields[i-1][j-1]); c++; if (c==2) return true;}
+                        if ((fields[i-1][j+1] instanceof Pawn) && fields[i-1][j+1].getColor() != color) {blackSC = new ShahCoords(i-1, j+1, fields[i-1][j+1]); c++; if (c==2) return true;}
+                    }
+                    if ( j==0 && ((fields[i-1][j+1] instanceof Pawn) && fields[i-1][j+1].getColor() != color) ) {blackSC = new ShahCoords(i-1, j+1, fields[i-1][j+1]); c++; if (c==2) return true;}
+                    if ( j==7 && ((fields[i-1][j-1] instanceof Pawn) && fields[i-1][j-1].getColor() != color) ) {blackSC = new ShahCoords(i-1, j-1, fields[i-1][j-1]); c++; if (c==2) return true;}
                 } break;
 
         }
@@ -119,19 +133,39 @@ public class Board {
         if (j>=1)
             for (k = j-1; k>=0; k--) // влево \ 4
                 if (fields[i][k] != null)
-                    if ( (fields[i][k].getColor() != color) && ((fields[i][k] instanceof Queen) || (fields[i][k] instanceof Rook)) ) return true;
+                    if ( (fields[i][k].getColor() != color) && ((fields[i][k] instanceof Queen) || (fields[i][k] instanceof Rook)) ) {
+                        switch (color){
+                            case 'w': whiteSC = new ShahCoords(i, k, fields[i][k]); c++; if (c==2) return true;
+                            case 'b': blackSC = new ShahCoords(i, k, fields[i][k]); c++; if (c==2) return true;
+                        }
+                    }
         if (j<=6)
             for (k = j+1; k<=7; k++) // вправо \ 6
                 if (fields[i][k] != null)
-                    if ( (fields[i][k].getColor() != color) && ((fields[i][k] instanceof Queen) || (fields[i][k] instanceof Rook)) ) return true;
+                    if ( (fields[i][k].getColor() != color) && ((fields[i][k] instanceof Queen) || (fields[i][k] instanceof Rook)) ) {
+                        switch (color){
+                            case 'w': whiteSC = new ShahCoords(i, k, fields[i][k]); c++; if (c==2) return true;
+                            case 'b': blackSC = new ShahCoords(i, k, fields[i][k]); c++; if (c==2) return true;
+                        }
+                    }
         if (i>=1)
             for (k = i-1; k>=0; k--) // вниз \ 2
                 if (fields[k][j] != null)
-                    if ( (fields[k][j].getColor() != color) && ((fields[k][j] instanceof Queen) || (fields[k][j] instanceof Rook)) ) return true;
+                    if ( (fields[k][j].getColor() != color) && ((fields[k][j] instanceof Queen) || (fields[k][j] instanceof Rook)) ) {
+                        switch (color){
+                            case 'w': whiteSC = new ShahCoords(k, j, fields[k][j]); c++; if (c==2) return true;
+                            case 'b': blackSC = new ShahCoords(k, j, fields[k][j]); c++; if (c==2) return true;
+                        }
+                    }
         if (i<=6)
             for (k = i+1; k<=7; k++) // вверх \ 8
                 if (fields[k][j] != null)
-                    if ( (fields[k][j].getColor() != color) && ((fields[k][j] instanceof Queen) || (fields[k][j] instanceof Rook)) ) return true;
+                    if ( (fields[k][j].getColor() != color) && ((fields[k][j] instanceof Queen) || (fields[k][j] instanceof Rook)) ) {
+                        switch (color){
+                            case 'w': whiteSC = new ShahCoords(k, j, fields[k][j]); c++; if (c==2) return true;
+                            case 'b': blackSC = new ShahCoords(k, j, fields[k][j]); c++; if (c==2) return true;
+                        }
+                    }
 //        # 9 7 1 3
         int l=0;
         if (i>=1 && j>=1){
@@ -139,7 +173,12 @@ public class Board {
             l = j-1;
             while (k>=0 && l>=0){
                 if (fields[k][l] != null)
-                    if ( (fields[k][l].getColor() != color) && ((fields[k][l] instanceof Queen) || (fields[k][l] instanceof Bishop)) ) return true;
+                    if ( (fields[k][l].getColor() != color) && ((fields[k][l] instanceof Queen) || (fields[k][l] instanceof Bishop)) ) {
+                        switch (color){
+                            case 'w': whiteSC = new ShahCoords(k, l, fields[k][l]); c++; if (c==2) return true;
+                            case 'b': blackSC = new ShahCoords(k, l, fields[k][l]); c++; if (c==2) return true;
+                        }
+                    }
                 k--;
                 l--;
             }
@@ -149,7 +188,12 @@ public class Board {
             l = j+1;
             while (k<=7 && l<=7){
                 if (fields[k][l] != null)
-                    if ( (fields[k][l].getColor() != color) && ((fields[k][l] instanceof Queen) || (fields[k][l] instanceof Bishop)) ) return true;
+                    if ( (fields[k][l].getColor() != color) && ((fields[k][l] instanceof Queen) || (fields[k][l] instanceof Bishop)) ) {
+                        switch (color){
+                            case 'w': whiteSC = new ShahCoords(k, l, fields[k][l]); c++; if (c==2) return true;
+                            case 'b': blackSC = new ShahCoords(k, l, fields[k][l]); c++; if (c==2) return true;
+                        }
+                    }
                 k++;
                 l++;
             }
@@ -159,7 +203,12 @@ public class Board {
             l = j-1;
             while (k<=7 && l>=0){
                 if (fields[k][l] != null)
-                    if ( (fields[k][l].getColor() != color) && ((fields[k][l] instanceof Queen) || (fields[k][l] instanceof Bishop)) ) return true;
+                    if ( (fields[k][l].getColor() != color) && ((fields[k][l] instanceof Queen) || (fields[k][l] instanceof Bishop)) ) {
+                        switch (color){
+                            case 'w': whiteSC = new ShahCoords(k, l, fields[k][l]); c++; if (c==2) return true;
+                            case 'b': blackSC = new ShahCoords(k, l, fields[k][l]); c++; if (c==2) return true;
+                        }
+                    }
                 k++;
                 l--;
             }
@@ -169,167 +218,167 @@ public class Board {
             l = j+1;
             while (k>=0 && l<=7){
                 if (fields[k][l] != null)
-                    if ( (fields[k][l].getColor() != color) && ((fields[k][l] instanceof Queen) || (fields[k][l] instanceof Bishop)) ) return true;
+                    if ( (fields[k][l].getColor() != color) && ((fields[k][l] instanceof Queen) || (fields[k][l] instanceof Bishop)) ) {
+                        switch (color){
+                            case 'w': whiteSC = new ShahCoords(k, l, fields[k][l]); c++; if (c==2) return true;
+                            case 'b': blackSC = new ShahCoords(k, l, fields[k][l]); c++; if (c==2) return true;
+                        }
+                    }
                 k--;
                 l++;
             }
         } // 3
 
 //        # Knight
-        if ( (i>=2 && i<=6 && j>=2 && j<=6) &&
-                ( ((fields[i+1][j+2] instanceof Knight) && fields[i+1][j+2].getColor() != color) || ((fields[i+2][j+1] instanceof Knight) && fields[i+2][j+1].getColor() != color) ||
-                        ((fields[i+2][j-1] instanceof Knight) && fields[i+2][j-1].getColor() != color) || ((fields[i+1][j-2] instanceof Knight) && fields[i+1][j-2].getColor() != color) ||
-                        ((fields[i-1][j-2] instanceof Knight) && fields[i-1][j-2].getColor() != color) || ((fields[i-2][j-1] instanceof Knight) && fields[i-2][j-1].getColor() != color) ||
-                        ((fields[i-2][j+1] instanceof Knight) && fields[i-2][j+1].getColor() != color) || ((fields[i-1][j+2] instanceof Knight) && fields[i-1][j+2].getColor() != color) ) )
-            return true;
-        // подсветка jetbrains кажется думает, что король в жизни не походит, поэтому рисует, что условия всегда true или false
 //        # 1
         if ( i+1 <= 7 && j+2 <= 7)
-            if ( (fields[i+1][j+2] instanceof Knight) && fields[i+1][j+2].getColor() != color) return true;
+            if ( (fields[i+1][j+2] instanceof Knight) && fields[i+1][j+2].getColor() != color) {
+                switch (color){
+                    case 'w': whiteSC = new ShahCoords(i+1, j+2, fields[i+1][j+2]); c++; if (c==2) return true;
+                    case 'b': blackSC = new ShahCoords(i+1, j+2, fields[i+1][j+2]); c++; if (c==2) return true;
+                }
+            }
         if ( i+2 <= 7 && j+1 <= 7)
-            if ( (fields[i+2][j+1] instanceof Knight) && fields[i+2][j+1].getColor() != color) return true;
+            if ( (fields[i+2][j+1] instanceof Knight) && fields[i+2][j+1].getColor() != color) {
+                switch (color){
+                    case 'w': whiteSC = new ShahCoords(i+2, j+1, fields[i+2][j+1]); c++; if (c==2) return true;
+                    case 'b': blackSC = new ShahCoords(i+2, j+1, fields[i+2][j+1]); c++; if (c==2) return true;
+                }
+            }
+
 //        # 2
         if ( i+1 <= 7 && j-2 >= 0)
-            if ( (fields[i+1][j-2] instanceof Knight) && fields[i+1][j-2].getColor() != color) return true;
+            if ( (fields[i+1][j-2] instanceof Knight) && fields[i+1][j-2].getColor() != color) {
+                switch (color){
+                    case 'w': whiteSC = new ShahCoords(i+1, j-2, fields[i+1][j-2]); c++; if (c==2) return true;
+                    case 'b': blackSC = new ShahCoords(i+1, j-2, fields[i+1][j-2]); c++; if (c==2) return true;
+                }
+            }
         if ( i+2 <= 7 && j-1 >= 0)
-            if ( (fields[i+2][j-1] instanceof Knight) && fields[i+2][j-1].getColor() != color) return true;
+            if ( (fields[i+2][j-1] instanceof Knight) && fields[i+2][j-1].getColor() != color) {
+                switch (color){
+                    case 'w': whiteSC = new ShahCoords(i+2, j-1, fields[i+2][j-1]); c++; if (c==2) return true;
+                    case 'b': blackSC = new ShahCoords(i+2, j-1, fields[i+2][j-1]); c++; if (c==2) return true;
+                }
+            }
+
         // # 3
         if ( i-1 >= 0 && j-2 >= 0)
-            if ( (fields[i-1][j-2] instanceof Knight) && fields[i-1][j-2].getColor() != color) return true;
+            if ( (fields[i-1][j-2] instanceof Knight) && fields[i-1][j-2].getColor() != color) {
+                switch (color){
+                    case 'w': whiteSC = new ShahCoords(i-1, j-2, fields[i-1][j-2]); c++; if (c==2) return true;
+                    case 'b': blackSC = new ShahCoords(i-1, j-2, fields[i-1][j-2]); c++; if (c==2) return true;
+                }
+            }
         if ( i-2 >= 0 && j-1 >= 0)
-            if ( (fields[i-2][j-1] instanceof Knight) && fields[i-2][j-1].getColor() != color) return true;
+            if ( (fields[i-2][j-1] instanceof Knight) && fields[i-2][j-1].getColor() != color) {
+                switch (color){
+                    case 'w': whiteSC = new ShahCoords(i-2, j-1, fields[i-2][j-1]); c++; if (c==2) return true;
+                    case 'b': blackSC = new ShahCoords(i-2, j-1, fields[i-2][j-1]); c++; if (c==2) return true;
+                }
+            }
 //        # 4
         if ( i-1 >= 0 && j+2 <= 7)
-            if ( (fields[i-1][j+2] instanceof Knight) && fields[i-1][j+2].getColor() != color) return true;
+            if ( (fields[i-1][j+2] instanceof Knight) && fields[i-1][j+2].getColor() != color) {
+                switch (color){
+                    case 'w': whiteSC = new ShahCoords(i-1, j+2, fields[i-1][j+2]); c++; if (c==2) return true;
+                    case 'b': blackSC = new ShahCoords(i-1, j+2, fields[i-1][j+2]); c++; if (c==2) return true;
+                }
+            }
         if ( i-2 >= 0 && j+1 <= 7)
-            if ( (fields[i-2][j+1] instanceof Knight) && fields[i-2][j+1].getColor() != color) return true;
+            if ( (fields[i-2][j+1] instanceof Knight) && fields[i-2][j+1].getColor() != color) {
+                switch (color){
+                    case 'w': whiteSC = new ShahCoords(i-2, j+1, fields[i-2][j+1]); c++; if (c==2) return true;
+                    case 'b': blackSC = new ShahCoords(i-2, j+1, fields[i-2][j+1]); c++; if (c==2) return true;
+                }
+            }
 
+        if (c>0 && level == 1) return true;
         return false;
     } //false = ne Shah
+
+    private boolean checkTileUnderAttack(int row, int col, Figure[][] fields, char color){
+        int i=0,j=0,flag=0;
+        for ( ; i<8; i++){
+            for ( ; j<8; j++){
+                if ( fields[i][j].getName().equals("K") && color == fields[i][j].getColor() ) {flag = 1; break;}
+            }
+            if (flag == 1) break;
+        }
+
+        if ( fields[row][col] == null || (fields[row][col] != null && fields[row][col].getColor() != color) ) {
+            fields[row][col] = fields[i][j];
+            fields[i][j] = null;
+            if (!shahCheck(fields, color, 1)) {
+                System.out.printf("%d %d tile NOT under Shah\n", row, col );
+                return false; // читай как "клетка не под атакой"
+            }
+        }
+        return true;
+    } //row col - интересующая клетка
     private boolean defeat( Figure[][] fields, char color ) {
-//        #1 search the right King
+        Figure[][] xfields = fields;
+
+//      search the right King
         int i=0,j=0,flag=0;
         for ( ; i<8; i++){
             for ( ; j<8; j++){
+//                xfields[i][j] = fields[i][i].getColor()+fields[i][i].getName();
                 if ( fields[i][j].getName().equals("K") && color == fields[i][j].getColor() ) {flag = 1; break;}
             }
             if (flag == 1) break;
         }
 
-        // TODO: 11.11.2023 таблица с проставленными X в клетках, куда нельзя ходить королю. интересуют в радиусе 1
-        // TODO: 11.11.2023 upd: шах есть шах. соседние X сделаем в мате
-//        #2 shah check for current King
-//        # Pawn
-        switch (color){
-            case 'w':
-                if (i<=6){
-                    if ( (j>=1 && j<=6) && ( ((fields[i+1][j-1] instanceof Pawn) && fields[i+1][j-1].getColor() != color) ||
-                            ((fields[i+1][j+1] instanceof Pawn) && fields[i+1][j+1].getColor() != color) ) ) { return true; }
-                    if ( j==0 && ((fields[i+1][j+1] instanceof Pawn) && fields[i+1][j+1].getColor() != color) ) { return true; }
-                    if ( j==7 && ((fields[i+1][j-1] instanceof Pawn) && fields[i+1][j-1].getColor() != color) ) { return true; }
-                }
-                break;
-            case 'b':
-                if (i>=1){
-                    if ( (j>=1 && j<=6) && ( ((fields[i-1][j-1] instanceof Pawn) && fields[i-1][j-1].getColor() != color) ||
-                            ((fields[i-1][j+1] instanceof Pawn) && fields[i-1][j+1].getColor() != color) ) ) { return true; }
-                    if ( j==0 && ((fields[i-1][j+1] instanceof Pawn) && fields[i-1][j+1].getColor() != color) ) { return true; }
-                    if ( j==7 && ((fields[i-1][j-1] instanceof Pawn) && fields[i-1][j-1].getColor() != color) ) { return true; }
-                } break;
+//        # 1 Атаковано ли поле с королём? Если нет, то не мат.
+        if ( !shahCheck(this.fields, colorGaming, 1) ) return false;
 
+//        # 2 Атакованы ли соседние с королём и свободные от его фигур поля? Если нет, то не мат.
+        if ( i-1>=0 ) {
+            if (j - 1 >= 0)
+                if ( (fields[i - 1][j - 1] == null || (fields[i - 1][j - 1] != null && fields[i - 1][j - 1].getColor() != color)) && !checkTileUnderAttack(i - 1, j - 1, fields, color) ) return false;
+            if ( (fields[i - 1][j] == null || (fields[i - 1][j] != null && fields[i - 1][j].getColor() != color)) && !checkTileUnderAttack(i - 1, j, fields, color) ) return false;
+            if (j + 1 <= 7)
+                if ( (fields[i - 1][j + 1] == null || (fields[i - 1][j + 1] != null && fields[i - 1][j + 1].getColor() != color)) && !checkTileUnderAttack(i - 1, j + 1, fields, color) ) return false;
         }
-//        # 6 8 4 2
-        int k=0;
-        if (j>=1)
-            for (k = j-1; k>=0; k--) // влево \ 4
-                if (fields[i][k] != null)
-                    if ( (fields[i][k].getColor() != color) && ((fields[i][k] instanceof Queen) || (fields[i][k] instanceof Rook)) ) return true;
-        if (j<=6)
-            for (k = j+1; k<=7; k++) // вправо \ 6
-                if (fields[i][k] != null)
-                    if ( (fields[i][k].getColor() != color) && ((fields[i][k] instanceof Queen) || (fields[i][k] instanceof Rook)) ) return true;
-        if (i>=1)
-            for (k = i-1; k>=0; k--) // вниз \ 2
-                if (fields[k][j] != null)
-                    if ( (fields[k][j].getColor() != color) && ((fields[k][j] instanceof Queen) || (fields[k][j] instanceof Rook)) ) return true;
-        if (i<=6)
-            for (k = i+1; k<=7; k++) // вверх \ 8
-                if (fields[k][j] != null)
-                    if ( (fields[k][j].getColor() != color) && ((fields[k][j] instanceof Queen) || (fields[k][j] instanceof Rook)) ) return true;
-//        # 9 7 1 3
-        int l=0;
-        if (i>=1 && j>=1){
-            k = i-1;
-            l = j-1;
-            while (k>=0 && l>=0){
-                if (fields[k][l] != null)
-                    if ( (fields[k][l].getColor() != color) && ((fields[k][l] instanceof Queen) || (fields[k][l] instanceof Bishop)) ) return true;
-                k--;
-                l--;
-            }
-        } // 1
-        if (i<=6 && j<=6){
-            k = i+1;
-            l = j+1;
-            while (k<=7 && l<=7){
-                if (fields[k][l] != null)
-                    if ( (fields[k][l].getColor() != color) && ((fields[k][l] instanceof Queen) || (fields[k][l] instanceof Bishop)) ) return true;
-                k++;
-                l++;
-            }
-        } // 9
-        if (i<=6 && j>=1){
-            k = i+1;
-            l = j-1;
-            while (k<=7 && l>=0){
-                if (fields[k][l] != null)
-                    if ( (fields[k][l].getColor() != color) && ((fields[k][l] instanceof Queen) || (fields[k][l] instanceof Bishop)) ) return true;
-                k++;
-                l--;
-            }
-        } // 7
-        if (i>=1 && j<=6){
-            k = i-1;
-            l = j+1;
-            while (k>=0 && l<=7){
-                if (fields[k][l] != null)
-                    if ( (fields[k][l].getColor() != color) && ((fields[k][l] instanceof Queen) || (fields[k][l] instanceof Bishop)) ) return true;
-                k--;
-                l++;
-            }
-        } // 3
 
-//        # Knight
-        if ( (i>=2 && i<=6 && j>=2 && j<=6) &&
-                ( ((fields[i+1][j+2] instanceof Knight) && fields[i+1][j+2].getColor() != color) || ((fields[i+2][j+1] instanceof Knight) && fields[i+2][j+1].getColor() != color) ||
-                        ((fields[i+2][j-1] instanceof Knight) && fields[i+2][j-1].getColor() != color) || ((fields[i+1][j-2] instanceof Knight) && fields[i+1][j-2].getColor() != color) ||
-                        ((fields[i-1][j-2] instanceof Knight) && fields[i-1][j-2].getColor() != color) || ((fields[i-2][j-1] instanceof Knight) && fields[i-2][j-1].getColor() != color) ||
-                        ((fields[i-2][j+1] instanceof Knight) && fields[i-2][j+1].getColor() != color) || ((fields[i-1][j+2] instanceof Knight) && fields[i-1][j+2].getColor() != color) ) )
-            return true;
-        // подсветка jetbrains кажется думает, что король в жизни не походит, поэтому рисует, что условия всегда true или false
-//        # 1
-        if ( i+1 <= 7 && j+2 <= 7)
-            if ( (fields[i+1][j+2] instanceof Knight) && fields[i+1][j+2].getColor() != color) return true;
-        if ( i+2 <= 7 && j+1 <= 7)
-            if ( (fields[i+2][j+1] instanceof Knight) && fields[i+2][j+1].getColor() != color) return true;
-//        # 2
-        if ( i+1 <= 7 && j-2 >= 0)
-            if ( (fields[i+1][j-2] instanceof Knight) && fields[i+1][j-2].getColor() != color) return true;
-        if ( i+2 <= 7 && j-1 >= 0)
-            if ( (fields[i+2][j-1] instanceof Knight) && fields[i+2][j-1].getColor() != color) return true;
-        // # 3
-        if ( i-1 >= 0 && j-2 >= 0)
-            if ( (fields[i-1][j-2] instanceof Knight) && fields[i-1][j-2].getColor() != color) return true;
-        if ( i-2 >= 0 && j-1 >= 0)
-            if ( (fields[i-2][j-1] instanceof Knight) && fields[i-2][j-1].getColor() != color) return true;
-//        # 4
-        if ( i-1 >= 0 && j+2 <= 7)
-            if ( (fields[i-1][j+2] instanceof Knight) && fields[i-1][j+2].getColor() != color) return true;
-        if ( i-2 >= 0 && j+1 <= 7)
-            if ( (fields[i-2][j+1] instanceof Knight) && fields[i-2][j+1].getColor() != color) return true;
+        if (j - 1 >= 0)
+            if ( (fields[i][j - 1] == null || (fields[i][j - 1] != null && fields[i][j - 1].getColor() != color)) && !checkTileUnderAttack(i, j - 1, fields, color) ) return false;
+        if ( (fields[i][j] == null || (fields[i][j] != null && fields[i][j].getColor() != color)) && !checkTileUnderAttack(i, j, fields, color) ) return false;
+        if (j + 1 <= 7)
+            if ( (fields[i][j + 1] == null || (fields[i][j + 1] != null && fields[i][j + 1].getColor() != color)) && !checkTileUnderAttack(i, j + 1, fields, color) ) return false;
 
-        return false;
-    } //false = ne Shah
+        if ( i+1<=7 ) {
+            if (j - 1 >= 0)
+                if ( (fields[i + 1][j - 1] == null || (fields[i + 1][j - 1] != null && fields[i + 1][j - 1].getColor() != color)) && !checkTileUnderAttack(i + 1, j - 1, fields, color) ) return false;
+            if ( (fields[i + 1][j] == null || (fields[i + 1][j] != null && fields[i + 1][j].getColor() != color)) && !checkTileUnderAttack(i + 1, j, fields, color) ) return false;
+            if (j + 1 <= 7)
+                if ( (fields[i + 1][j + 1] == null || (fields[i + 1][j + 1] != null && fields[i + 1][j + 1].getColor() != color)) && !checkTileUnderAttack(i + 1, j + 1, fields, color) ) return false;
+        }
+
+//        # 3 Сколько фигур атакуют короля? Если две, то мат.
+        if ( shahCheck(this.fields, colorGaming, 2) ) { System.out.println("gg!"); return true; }
+
+//        # 4 Можно ли съесть атакующую фигуру? Если да, то не мат.
+
+
+//        # 5 Атакует конь? Если да, то мат.
+        switch (color){
+            case 'w': if ( whiteSC.figure.getName().equals("N") ) { System.out.println("gg!"); return true; }
+            case 'b': if ( blackSC.figure.getName().equals("N") ) { System.out.println("gg!"); return true; }
+        }
+
+//        # 6 Атакующая фигура на соседнем поле? Если да, то мат.
+        switch (color){
+            case 'w': if ( Math.abs(whiteSC.row - i)<=1 && Math.abs(whiteSC.col - j)<=1 ) { System.out.println("gg!"); return true; }
+            case 'b': if ( Math.abs(blackSC.row - i)<=1 && Math.abs(blackSC.col - j)<=1 ) { System.out.println("gg!"); return true; }
+        }
+
+//        # 7 Можно ли перекрыть линию атаки? Если да, то не мат. Иначе - мат.
+
+
+
+        return true;
+    } //true = mat
 
     private boolean castling( int row1, int col1, int row2, int col2, Figure[][] fields ){
         Figure figure = fields[row1][col1];
@@ -345,14 +394,14 @@ public class Board {
                 fields[row1][col1+2] = null;
                 switch(colorGaming){
                     case 'w':
-                        if ( shahFlagWhite || shahCheck(fields, colorGaming) ){
+                        if ( shahFlagWhite || shahCheck(fields, colorGaming, 1) ){
                             System.out.println("path under Shah");
                             fields[row1][col1] = figure;
                             fields[row1][col1+1] = null;
                             return false;
                         } break;
                     case 'b':
-                        if ( shahFlagBlack || shahCheck(fields, colorGaming) ){
+                        if ( shahFlagBlack || shahCheck(fields, colorGaming, 1) ){
                             System.out.println("path under Shah");
                             fields[row1][col1] = figure;
                             fields[row1][col1+1] = null;
@@ -375,14 +424,14 @@ public class Board {
                 fields[row1][col1-2] = null;
                 switch(colorGaming){
                     case 'w':
-                        if ( shahFlagWhite || shahCheck(fields, colorGaming) ){
+                        if ( shahFlagWhite || shahCheck(fields, colorGaming, 1) ){
                             System.out.println("path under Shah");
                             fields[row1][col1] = figure;
                             fields[row1][col1-1] = null;
                             return false;
                         } break;
                     case 'b':
-                        if ( shahFlagBlack || shahCheck(fields, colorGaming) ){
+                        if ( shahFlagBlack || shahCheck(fields, colorGaming, 1) ){
                             System.out.println("path under Shah");
                             fields[row1][col1] = figure;
                             fields[row1][col1-1] = null;
@@ -403,8 +452,9 @@ public class Board {
 
         if (figure.getColor() != colorGaming) return false;
 
-        shahFlagWhite = shahCheck(fields, 'w');
-        shahFlagBlack = shahCheck(fields, 'b');
+        shahFlagWhite = shahCheck(fields, 'w', 1);
+        shahFlagBlack = shahCheck(fields, 'b', 1);
+//        if ( defeat(fields, colorGaming) ) exit();
 
         if (figure.canMove(row1, col1, row2, col2, fields) && this.fields[row2][col2]==null){
 
@@ -412,7 +462,7 @@ public class Board {
             fields[row2][col2] = figure;
             fields[row1][col1] = null;
 
-            if ( shahCheck(fields, colorGaming) ) {
+            if ( shahCheck(fields, colorGaming, 1) ) {
                 System.out.println("still under Shah");
                 fields[row1][col1] = figure;
                 fields[row2][col2] = null;
@@ -431,7 +481,7 @@ public class Board {
             this.fields[row2][col2] = figure;
             this.fields[row1][col1] = null;
 
-            if ( shahCheck(fields, colorGaming) ) {
+            if ( shahCheck(fields, colorGaming, 1) ) {
                 System.out.println("still under Shah");
                 fields[row1][col1] = figure;
                 fields[row2][col2] = null;
