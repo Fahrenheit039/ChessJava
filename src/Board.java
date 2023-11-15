@@ -60,10 +60,6 @@ public class Board {
         return " "+figure.getColor()+figure.getName()+" ";
     } // используется для отрисовки
 
-    public Figure getCell_f( int row, int col ){
-        return this.fields[row][col];
-    } // для просмотра объекта в клетке
-
     public ArrayList<String> getTakeWhite() {
         return takeWhite;
     }
@@ -72,11 +68,11 @@ public class Board {
         return takeBlack;
     }
 
-    private void pawnCheck( int row1, int col1, int row2, int col2) {
-        if( this.fields[row2][col2].getName().equals("P") ){
-            switch (fields[row2][col2].getColor()) {
-                case 'w': if (row2 == 7) { fields[row2][col2] = ((Pawn)fields[row2][col2]).becomeAnyone('w'); } break;
-                case 'b': if (row2 == 0) { fields[row2][col2] = ((Pawn)fields[row2][col2]).becomeAnyone('b'); } break;
+    private void pawnCheck( int row, int col) {
+        if( this.fields[row][col] != null && this.fields[row][col].getName().equals("P") ){
+            switch (fields[row][col].getColor()) {
+                case 'w': if (row == 7) { this.fields[row][col] = ((Pawn)this.fields[row][col]).becomeAnyone('w'); } break;
+                case 'b': if (row == 0) { this.fields[row][col] = ((Pawn)this.fields[row][col]).becomeAnyone('b'); } break;
             }
         }
     }
@@ -98,8 +94,8 @@ public class Board {
 //        #1 search the right King
         int i=0,j=0,flag=0;
         for ( ; i<8; i++){
-            for ( ; j<8; j++){
-                if ( fields[i][j].getName().equals("K") && color == fields[i][j].getColor() ) {flag = 1; break;}
+            for (j=0; j<8; j++){
+                if ( fields[i][j] != null && fields[i][j].getName().equals("K") && color == fields[i][j].getColor() ) {flag = 1; break;}
             }
             if (flag == 1) break;
         }
@@ -254,8 +250,8 @@ public class Board {
     private boolean checkTileUnderAttack(int row, int col, Figure[][] fields, char color){
         int i=0,j=0,flag=0;
         for ( ; i<8; i++){
-            for ( ; j<8; j++){
-                if ( fields[i][j].getName().equals("K") && color == fields[i][j].getColor() ) {flag = 1; break;}
+            for ( j=0; j<8; j++){
+                if ( fields[i][j] != null && fields[i][j].getName().equals("K") && color == fields[i][j].getColor() ) {flag = 1; break;}
             }
             if (flag == 1) break;
         }
@@ -276,9 +272,9 @@ public class Board {
 //      search the right King
         int i=0,j=0,flag=0;
         for ( ; i<8; i++){
-            for ( ; j<8; j++){
+            for ( j=0; j<8; j++){
 //                xfields[i][j] = fields[i][i].getColor()+fields[i][i].getName();
-                if ( fields[i][j].getName().equals("K") && color == fields[i][j].getColor() ) {flag = 1; break;}
+                if ( fields[i][j] != null && fields[i][j].getName().equals("K") && color == fields[i][j].getColor() ) {flag = 1; break;}
             }
             if (flag == 1) break;
         }
@@ -316,8 +312,8 @@ public class Board {
 //        поставить на тайл вражеского короля, проверить - под шахом ли он в этой позиции: если да, то эту фигуру можно съесть
         int i_reverse=0,j_reverse=0,flag_reverse=0; //коорды короля противоположного цвета
         for ( ; i_reverse<8; i_reverse++){
-            for ( ; j_reverse<8; j_reverse++){
-                if ( fields[i_reverse][j_reverse].getName().equals("K") && fields[i][j].getColor() != color ) {flag_reverse = 1; break;}
+            for ( j_reverse=0; j_reverse<8; j_reverse++){
+                if ( fields[i_reverse][j_reverse] != null && fields[i_reverse][j_reverse].getName().equals("K") && fields[i][j].getColor() != color ) {flag_reverse = 1; break;}
             }
             if (flag_reverse == 1) break;
         }
@@ -410,7 +406,17 @@ public class Board {
             }
         return false;
     }
-    private boolean castling( int row1, int col1, int row2, int col2, Figure[][] fields ){
+    private boolean castling( int row1, int col1, int row2, int col2 ){
+
+        Figure[][] fields = new Figure[8][];
+        for(int i=0;i<8;i++) {
+            fields[i] = new Figure[8];
+            for(int j=0; j<8; j++)
+                fields[i][j] = this.fields[i][j];
+        }
+
+        fields[row1][col1] = fields[row2][col2];
+        fields[row2][col2] = null;
         Figure figure = fields[row1][col1];
         if( figure.getName().equals("K") && ((King)fields[row2][col2]).isFirstStep && Math.abs(col1-col2) == 2 )
             if ( col1 < col2 ) {
@@ -438,10 +444,10 @@ public class Board {
                             return false;
                         } break;
                 }
-                fields[row1][col1+2] = figure;
-                fields[row1][col1+1] = fields[row1][col1+3];
-                fields[row1][col1+3] = null;
-                ((King)fields[row1][col1+2]).isFirstStep = false;
+                this.fields[row1][col1+2] = figure;
+                this.fields[row1][col1+1] = this.fields[row1][col1+3];
+                this.fields[row1][col1+3] = null;
+                ((King)this.fields[row1][col1+2]).isFirstStep = false;
             } else {
                 if ( !fields[row1][col1-4].getName().equals("R") || !((Rook)fields[row1][col1-4]).isFirstStep ||
                         fields[row1][col1-1] != null || fields[row1][col1-3] != null ) {
@@ -468,10 +474,10 @@ public class Board {
                             return false;
                         } break;
                 }
-                fields[row1][col1-2] = figure;
-                fields[row1][col1-1] = fields[row1][col1-4];
-                fields[row1][col1-4] = null;
-                ((King)fields[row1][col1-2]).isFirstStep = false;
+                this.fields[row1][col1-2] = figure;
+                this.fields[row1][col1-1] = this.fields[row1][col1-4];
+                this.fields[row1][col1-4] = null;
+                ((King)this.fields[row1][col1-2]).isFirstStep = false;
             }
         return true;
     }
@@ -480,13 +486,14 @@ public class Board {
 
         Figure figure =  this.fields[row1][col1];
 
+        if (figure == null) return false;
         if (figure.getColor() != colorGaming) return false;
 
         shahFlagWhite = shahCheck(fields, 'w', 1);
         shahFlagBlack = shahCheck(fields, 'b', 1);
         switch(colorGaming){
-            case 'w': if (!shahFlagWhite) { SC.figure = null; SC = null; }
-            case 'b': if (!shahFlagBlack) { SC.figure = null; SC = null; }
+            case 'w': if (!shahFlagWhite) { SC = null; }
+            case 'b': if (!shahFlagBlack) { SC = null; }
         }
         if ( defeat(fields, colorGaming) ) { System.out.println("gg!"); System.exit(0); }
 
@@ -503,8 +510,8 @@ public class Board {
                 return false;
             }
 
-            if ( !castling(row1, col1, row2, col2, fields) ) return false;
-            pawnCheck(row1, col1, row2, col2);
+            if ( !castling(row1, col1, row2, col2) ) return false;
+            pawnCheck(row2, col2);
 
             return true;
         } else if (figure.canAttack(row1, col1, row2, col2, fields) && this.fields[row2][col2] != null &&
@@ -527,7 +534,7 @@ public class Board {
                 case 'b': this.takeBlack.add(this.fields[row2][col2].getColor()+this.fields[row2][col2].getName());break;
             }
 
-            pawnCheck(row1, col1, row2, col2);
+            pawnCheck(row2, col2);
 
             return true;
         }
