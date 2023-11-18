@@ -52,6 +52,7 @@ public class Pawn extends Figure {
     }
 
     public Figure becomeAnyone(char color) {
+        System.out.println("----- Выбери фигуру вместо пешки:\n \"Q\" for Queen \\ \"B\" for Bishop \\ \"N\" for Knight \\ \"R\" for Rook\n");
         Scanner in = new Scanner(System.in);
         String figure = in.nextLine();
         while ( true ){

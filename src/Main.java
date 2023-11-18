@@ -15,7 +15,7 @@ public class Main {
             System.out.println();
             System.out.println("Команды: ");
             System.out.println("----- exit: Выход из игры");
-            System.out.println("------y1 x1 y2 x2: Ход фигуры из клетки x1, y1 в клекту x2, y2");
+            System.out.println("----- y1 x1 y2 x2: Ход фигуры из клетки x1, y1 в клекту x2, y2");
 
 
             System.out.println("Взятые Белые:"+board.getTakeWhite().toString());
@@ -26,10 +26,9 @@ public class Main {
                 case 'b': System.out.println("Ход Черных:");break;
             }
 
-
             String inputLine = in.nextLine();
             if (inputLine.equals("exit")){
-                System.out.println("Игра завршена.");
+                System.out.println("Игра завершена.");
                 in.close();
                 break;
             }
